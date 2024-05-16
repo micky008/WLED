@@ -7,7 +7,7 @@
 
 #define GRADIENT_PALETTE_COUNT 58
 
-//Defaults
+ //Defaults
 #define DEFAULT_CLIENT_SSID "Your_Network"
 #define DEFAULT_AP_SSID     "WLED-AP"
 #define DEFAULT_AP_PASS     "wled1234"
@@ -16,62 +16,62 @@
 
 //increase if you need more
 #ifndef WLED_MAX_USERMODS
-  #ifdef ESP8266
-    #define WLED_MAX_USERMODS 4
-  #else
-    #define WLED_MAX_USERMODS 6
-  #endif
+#ifdef ESP8266
+#define WLED_MAX_USERMODS 4
+#else
+#define WLED_MAX_USERMODS 6
+#endif
 #endif
 
 #ifndef WLED_MAX_BUSSES
-  #ifdef ESP8266
-    #define WLED_MAX_BUSSES 3
-    #define WLED_MIN_VIRTUAL_BUSSES 2
-  #else
-    #if defined(CONFIG_IDF_TARGET_ESP32C3)    // 2 RMT, 6 LEDC, only has 1 I2S but NPB does not support it ATM
-      #define WLED_MAX_BUSSES 3               // will allow 2 digital & 1 analog (or the other way around)
-      #define WLED_MIN_VIRTUAL_BUSSES 3
-    #elif defined(CONFIG_IDF_TARGET_ESP32S2)  // 4 RMT, 8 LEDC, only has 1 I2S bus, supported in NPB
-      #if defined(USERMOD_AUDIOREACTIVE)      // requested by @softhack007 https://github.com/blazoncek/WLED/issues/33
-        #define WLED_MAX_BUSSES 6             // will allow 4 digital & 2 analog
-        #define WLED_MIN_VIRTUAL_BUSSES 4
-      #else
-        #define WLED_MAX_BUSSES 7             // will allow 5 digital & 2 analog
-        #define WLED_MIN_VIRTUAL_BUSSES 3
-      #endif
-    #elif defined(CONFIG_IDF_TARGET_ESP32S3)  // 4 RMT, 8 LEDC, has 2 I2S but NPB does not support them ATM
-      #define WLED_MAX_BUSSES 6               // will allow 4 digital & 2 analog
-      #define WLED_MIN_VIRTUAL_BUSSES 4
-    #else
-      #if defined(USERMOD_AUDIOREACTIVE)      // requested by @softhack007 https://github.com/blazoncek/WLED/issues/33
-        #define WLED_MAX_BUSSES 8
-        #define WLED_MIN_VIRTUAL_BUSSES 2
-      #else
-        #define WLED_MAX_BUSSES 10
-        #define WLED_MIN_VIRTUAL_BUSSES 0
-      #endif
-    #endif
-  #endif
+#ifdef ESP8266
+#define WLED_MAX_BUSSES 3
+#define WLED_MIN_VIRTUAL_BUSSES 2
 #else
-  #ifdef ESP8266
-    #if WLED_MAX_BUSES > 5
-      #error Maximum number of buses is 5.
-    #endif
-    #define WLED_MIN_VIRTUAL_BUSSES (5-WLED_MAX_BUSSES)
-  #else
-    #if WLED_MAX_BUSES > 10
-      #error Maximum number of buses is 10.
-    #endif
-    #define WLED_MIN_VIRTUAL_BUSSES (10-WLED_MAX_BUSSES)
-  #endif
+#if defined(CONFIG_IDF_TARGET_ESP32C3)    // 2 RMT, 6 LEDC, only has 1 I2S but NPB does not support it ATM
+#define WLED_MAX_BUSSES 3               // will allow 2 digital & 1 analog (or the other way around)
+#define WLED_MIN_VIRTUAL_BUSSES 3
+#elif defined(CONFIG_IDF_TARGET_ESP32S2)  // 4 RMT, 8 LEDC, only has 1 I2S bus, supported in NPB
+#if defined(USERMOD_AUDIOREACTIVE)      // requested by @softhack007 https://github.com/blazoncek/WLED/issues/33
+#define WLED_MAX_BUSSES 6             // will allow 4 digital & 2 analog
+#define WLED_MIN_VIRTUAL_BUSSES 4
+#else
+#define WLED_MAX_BUSSES 7             // will allow 5 digital & 2 analog
+#define WLED_MIN_VIRTUAL_BUSSES 3
+#endif
+#elif defined(CONFIG_IDF_TARGET_ESP32S3)  // 4 RMT, 8 LEDC, has 2 I2S but NPB does not support them ATM
+#define WLED_MAX_BUSSES 6               // will allow 4 digital & 2 analog
+#define WLED_MIN_VIRTUAL_BUSSES 4
+#else
+#if defined(USERMOD_AUDIOREACTIVE)      // requested by @softhack007 https://github.com/blazoncek/WLED/issues/33
+#define WLED_MAX_BUSSES 8
+#define WLED_MIN_VIRTUAL_BUSSES 2
+#else
+#define WLED_MAX_BUSSES 10
+#define WLED_MIN_VIRTUAL_BUSSES 0
+#endif
+#endif
+#endif
+#else
+#ifdef ESP8266
+#if WLED_MAX_BUSES > 5
+#error Maximum number of buses is 5.
+#endif
+#define WLED_MIN_VIRTUAL_BUSSES (5-WLED_MAX_BUSSES)
+#else
+#if WLED_MAX_BUSES > 10
+#error Maximum number of buses is 10.
+#endif
+#define WLED_MIN_VIRTUAL_BUSSES (10-WLED_MAX_BUSSES)
+#endif
 #endif
 
 #ifndef WLED_MAX_BUTTONS
-  #ifdef ESP8266
-    #define WLED_MAX_BUTTONS 2
-  #else
-    #define WLED_MAX_BUTTONS 4
-  #endif
+#ifdef ESP8266
+#define WLED_MAX_BUTTONS 2
+#else
+#define WLED_MAX_BUTTONS 4
+#endif
 #endif
 
 #ifdef ESP8266
@@ -81,29 +81,29 @@
 #endif
 
 #if defined(WLED_MAX_LEDMAPS) && (WLED_MAX_LEDMAPS > 32 || WLED_MAX_LEDMAPS < 10)
-  #undef WLED_MAX_LEDMAPS
+#undef WLED_MAX_LEDMAPS
 #endif
 #ifndef WLED_MAX_LEDMAPS
-  #ifdef ESP8266
-    #define WLED_MAX_LEDMAPS 10
-  #else
-    #define WLED_MAX_LEDMAPS 16
-  #endif
+#ifdef ESP8266
+#define WLED_MAX_LEDMAPS 10
+#else
+#define WLED_MAX_LEDMAPS 16
+#endif
 #endif
 
 #ifndef WLED_MAX_SEGNAME_LEN
-  #ifdef ESP8266
-    #define WLED_MAX_SEGNAME_LEN 32
-  #else
-    #define WLED_MAX_SEGNAME_LEN 64
-  #endif
+#ifdef ESP8266
+#define WLED_MAX_SEGNAME_LEN 32
 #else
-  #if WLED_MAX_SEGNAME_LEN<32
-    #undef WLED_MAX_SEGNAME_LEN
-    #define WLED_MAX_SEGNAME_LEN 32
-  #else
-    #warning WLED UI does not support modified maximum segment name length!
-  #endif
+#define WLED_MAX_SEGNAME_LEN 64
+#endif
+#else
+#if WLED_MAX_SEGNAME_LEN<32
+#undef WLED_MAX_SEGNAME_LEN
+#define WLED_MAX_SEGNAME_LEN 32
+#else
+#warning WLED UI does not support modified maximum segment name length!
+#endif
 #endif
 
 //Usermod IDs
@@ -152,6 +152,7 @@
 #define USERMOD_ID_INTERNAL_TEMPERATURE  42     //Usermod "usermod_internal_temperature.h"
 #define USERMOD_ID_LDR_DUSK_DAWN         43     //Usermod "usermod_LDR_Dusk_Dawn_v2.h"
 #define USERMOD_ID_STAIRWAY_WIPE         44     //Usermod "stairway-wipe-usermod-v2.h"
+#define USERMOD_ID_ULTRASONIC            45     //Usermod "stairway-wipe-usermod-v2.h"
 
 //Access point behavior
 #define AP_BEHAVIOR_BOOT_NO_CONN          0     //Open AP when no connection after boot
@@ -389,15 +390,15 @@
 #endif
 
 #ifndef MAX_LED_MEMORY
-  #ifdef ESP8266
-    #define MAX_LED_MEMORY 4000
-  #else
-    #if defined(ARDUINO_ARCH_ESP32S2) || defined(ARDUINO_ARCH_ESP32C3)
-      #define MAX_LED_MEMORY 32000
-    #else
-      #define MAX_LED_MEMORY 64000
-    #endif
-  #endif
+#ifdef ESP8266
+#define MAX_LED_MEMORY 4000
+#else
+#if defined(ARDUINO_ARCH_ESP32S2) || defined(ARDUINO_ARCH_ESP32C3)
+#define MAX_LED_MEMORY 32000
+#else
+#define MAX_LED_MEMORY 64000
+#endif
+#endif
 #endif
 
 #ifndef MAX_LEDS_PER_BUS
@@ -412,31 +413,31 @@
 #endif
 
 #ifdef WLED_USE_ETHERNET
-  #define E131_MAX_UNIVERSE_COUNT 20
+#define E131_MAX_UNIVERSE_COUNT 20
 #else
-  #ifdef ESP8266
-    #define E131_MAX_UNIVERSE_COUNT 9
-  #else
-    #define E131_MAX_UNIVERSE_COUNT 12
-  #endif
+#ifdef ESP8266
+#define E131_MAX_UNIVERSE_COUNT 9
+#else
+#define E131_MAX_UNIVERSE_COUNT 12
+#endif
 #endif
 
 #ifndef ABL_MILLIAMPS_DEFAULT
-  #define ABL_MILLIAMPS_DEFAULT 850   // auto lower brightness to stay close to milliampere limit
+#define ABL_MILLIAMPS_DEFAULT 850   // auto lower brightness to stay close to milliampere limit
 #else
-  #if ABL_MILLIAMPS_DEFAULT == 0      // disable ABL
-  #elif ABL_MILLIAMPS_DEFAULT < 250   // make sure value is at least 250
-   #warning "make sure value is at least 250"
-   #define ABL_MILLIAMPS_DEFAULT 250
-  #endif
+#if ABL_MILLIAMPS_DEFAULT == 0      // disable ABL
+#elif ABL_MILLIAMPS_DEFAULT < 250   // make sure value is at least 250
+  #warning "make sure value is at least 250"
+#define ABL_MILLIAMPS_DEFAULT 250
+#endif
 #endif
 
-// PWM settings
+  // PWM settings
 #ifndef WLED_PWM_FREQ
 #ifdef ESP8266
-  #define WLED_PWM_FREQ    880 //PWM frequency proven as good for LEDs
+#define WLED_PWM_FREQ    880 //PWM frequency proven as good for LEDs
 #else
-  #define WLED_PWM_FREQ  19531
+#define WLED_PWM_FREQ  19531
 #endif
 #endif
 
@@ -444,9 +445,9 @@
 
 // Size of buffer for API JSON object (increase for more segments)
 #ifdef ESP8266
-  #define JSON_BUFFER_SIZE 10240
+#define JSON_BUFFER_SIZE 10240
 #else
-  #define JSON_BUFFER_SIZE 24576
+#define JSON_BUFFER_SIZE 24576
 #endif
 
 //#define MIN_HEAP_SIZE (8k for AsyncWebServer)
@@ -454,30 +455,30 @@
 
 // Maximum size of node map (list of other WLED instances)
 #ifdef ESP8266
-  #define WLED_MAX_NODES 24
+#define WLED_MAX_NODES 24
 #else
-  #define WLED_MAX_NODES 150
+#define WLED_MAX_NODES 150
 #endif
 
 //this is merely a default now and can be changed at runtime
 #ifndef LEDPIN
 #if defined(ESP8266) || (defined(ARDUINO_ARCH_ESP32) && defined(WLED_USE_PSRAM)) || defined(CONFIG_IDF_TARGET_ESP32C3) || defined(ARDUINO_ESP32_PICO)
-  #define LEDPIN 2    // GPIO2 (D4) on Wemos D1 mini compatible boards, and on boards where GPIO16 is not available
+#define LEDPIN 2    // GPIO2 (D4) on Wemos D1 mini compatible boards, and on boards where GPIO16 is not available
 #else
-  #define LEDPIN 16   // aligns with GPIO2 (D4) on Wemos D1 mini32 compatible boards
+#define LEDPIN 16   // aligns with GPIO2 (D4) on Wemos D1 mini32 compatible boards
 #endif
 #endif
 
 #ifdef WLED_ENABLE_DMX
 #if (LEDPIN == 2)
-  #undef LEDPIN
-  #define LEDPIN 1
-  #warning "Pin conflict compiling with DMX and LEDs on pin 2. The default LED pin has been changed to pin 1."
+#undef LEDPIN
+#define LEDPIN 1
+#warning "Pin conflict compiling with DMX and LEDs on pin 2. The default LED pin has been changed to pin 1."
 #endif
 #endif
 
 #ifndef DEFAULT_LED_COUNT
-  #define DEFAULT_LED_COUNT 30
+#define DEFAULT_LED_COUNT 30
 #endif
 
 #define INTERFACE_UPDATE_COOLDOWN 1000 // time in ms to wait between websockets, alexa, and MQTT updates
@@ -488,56 +489,56 @@
 // HW_PIN_SCL & HW_PIN_SDA are used for information in usermods settings page and usermods themselves
 // which GPIO pins are actually used in a hardware layout (controller board)
 #if defined(I2CSCLPIN) && !defined(HW_PIN_SCL)
-  #define HW_PIN_SCL I2CSCLPIN
+#define HW_PIN_SCL I2CSCLPIN
 #endif
 #if defined(I2CSDAPIN) && !defined(HW_PIN_SDA)
-  #define HW_PIN_SDA I2CSDAPIN
+#define HW_PIN_SDA I2CSDAPIN
 #endif
 // you cannot change HW I2C pins on 8266
 #if defined(ESP8266) && defined(HW_PIN_SCL)
-  #undef HW_PIN_SCL
+#undef HW_PIN_SCL
 #endif
 #if defined(ESP8266) && defined(HW_PIN_SDA)
-  #undef HW_PIN_SDA
+#undef HW_PIN_SDA
 #endif
 // defaults for 1st I2C on ESP32 (Wire global)
 #ifndef HW_PIN_SCL
-  #define HW_PIN_SCL SCL
+#define HW_PIN_SCL SCL
 #endif
 #ifndef HW_PIN_SDA
-  #define HW_PIN_SDA SDA
+#define HW_PIN_SDA SDA
 #endif
 
 // HW_PIN_SCLKSPI & HW_PIN_MOSISPI & HW_PIN_MISOSPI are used for information in usermods settings page and usermods themselves
 // which GPIO pins are actually used in a hardware layout (controller board)
 #if defined(SPISCLKPIN) && !defined(HW_PIN_CLOCKSPI)
-  #define HW_PIN_CLOCKSPI SPISCLKPIN
+#define HW_PIN_CLOCKSPI SPISCLKPIN
 #endif
 #if defined(SPIMOSIPIN) && !defined(HW_PIN_MOSISPI)
-  #define HW_PIN_MOSISPI SPIMOSIPIN
+#define HW_PIN_MOSISPI SPIMOSIPIN
 #endif
 #if defined(SPIMISOPIN) && !defined(HW_PIN_MISOSPI)
-  #define HW_PIN_MISOSPI SPIMISOPIN
+#define HW_PIN_MISOSPI SPIMISOPIN
 #endif
 // you cannot change HW SPI pins on 8266
 #if defined(ESP8266) && defined(HW_PIN_CLOCKSPI)
-  #undef HW_PIN_CLOCKSPI
+#undef HW_PIN_CLOCKSPI
 #endif
 #if defined(ESP8266) && defined(HW_PIN_DATASPI)
-  #undef HW_PIN_DATASPI
+#undef HW_PIN_DATASPI
 #endif
 #if defined(ESP8266) && defined(HW_PIN_MISOSPI)
-  #undef HW_PIN_MISOSPI
+#undef HW_PIN_MISOSPI
 #endif
 // defaults for VSPI on ESP32 (SPI global, SPI.cpp) as HSPI is used by WLED (bus_wrapper.h)
 #ifndef HW_PIN_CLOCKSPI
-  #define HW_PIN_CLOCKSPI SCK
+#define HW_PIN_CLOCKSPI SCK
 #endif
 #ifndef HW_PIN_DATASPI
-  #define HW_PIN_DATASPI MOSI
+#define HW_PIN_DATASPI MOSI
 #endif
 #ifndef HW_PIN_MISOSPI
-  #define HW_PIN_MISOSPI MISO
+#define HW_PIN_MISOSPI MISO
 #endif
 
 #endif
