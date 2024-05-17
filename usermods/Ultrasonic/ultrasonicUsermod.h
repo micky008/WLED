@@ -5,33 +5,25 @@
 
 #define MAX_DISTANCE 200
 
-class Sonar {
-
-public:
-  byte echo;
-  byte triger;
-  byte idSegment1;
-  byte idSegment2;
-  bool enabled = false;
-  Sonar(byte e, byte t, byte id1, byte id2, bool en) {
-    this->echo = e;
-    this->triger = t;
-    this->idSegment1 = id1;
-    this->idSegment2 = id2;
-    this->enabled = en;
-  }
-};
 
 class UltraSonicUsermod : public Usermod {
 
 private:
+  struct Sonar {
+
+  public:
+    uint8_t echo;
+    uint8_t triger;
+    uint8_t idSegment1;
+    uint8_t idSegment2;
+  };
   // string that are used multiple time (this will save some flash memory)
   static const char _name[];
   static const char _enabled[];
   bool enabled = false;
   long lastTime = 0;
-  NewPing sensors[4];
-  Sonar sonars[4];
+  NewPing* sensors[4];
+  Sonar* sonars[4];
 
 public:
   // non WLED related methods, may be used for data exchange between usermods (non-inline methods should be defined out of class)
@@ -46,16 +38,10 @@ public:
 
 
   void setup() {
-    sensors[0] = NewPing(sonars[0].triger, sonars[0].echo, MAX_DISTANCE);
-    if (sonars[1].enabled) {
-      sensors[1] = NewPing(sonars[1].triger, sonars[1].echo, MAX_DISTANCE);
-    }
-    if (sonars[2].enabled) {
-      sensors[2] = NewPing(sonars[2].triger, sonars[2].echo, MAX_DISTANCE);
-    }
-    if (sonars[3].enabled) {
-      sensors[3] = NewPing(sonars[3].triger, sonars[3].echo, MAX_DISTANCE);
-    }
+    sensors[0] = new NewPing(sonars[0]->triger, sonars[0]->echo, MAX_DISTANCE);
+    sensors[1] = new NewPing(sonars[1]->triger, sonars[1]->echo, MAX_DISTANCE);
+    sensors[2] = new NewPing(sonars[2]->triger, sonars[2]->echo, MAX_DISTANCE);
+    sensors[3] = new NewPing(sonars[3]->triger, sonars[3]->echo, MAX_DISTANCE);
   }
 
   void loop() {
@@ -114,15 +100,28 @@ public:
     JsonObject s2 = top["sensor2"];
     JsonObject s3 = top["sensor3"];
     JsonObject s4 = top["sensor4"];
-    sonars[0] = { s1["echo"], s1["trigger"],s1["segId1"],s1["segId2"],true };
-    sonars[1] = { s2["echo"], s2["trigger"],s2["segId1"],s2["segId2"],true };
-    sonars[2] = { s3["echo"], s3["trigger"],s3["segId1"],s3["segId2"],true };
-    sonars[3] = { s4["echo"], s4["trigger"],s4["segId1"],s4["segId2"],true };
+    if (sonars[0] == nullptr) {
+      sonars[0] = new Sonar();
+      sonars[1] = new Sonar();
+      sonars[2] = new Sonar();
+      sonars[3] = new Sonar();
+    }
+    peupleSonar(s1, 0);
+    peupleSonar(s2, 1);
+    peupleSonar(s3, 2);
+    peupleSonar(s4, 3);
     return true;
   }
 
+  void peupleSonar(JsonObject& sonar, byte i) {
+    sonars[i]->echo = sonar["echo"];
+    sonars[i]->triger = sonar["trigger"];
+    sonars[i]->idSegment1 = sonar["segId1"];
+    sonars[i]->idSegment2 = sonar["segId2"];
+  }
+
   void appendConfigData() {
- //   oappend(SET_F("addInfo('WireGuard:host',1,'Server Hostname');"));           // 0 is field type, 1 is actual field
+    //   oappend(SET_F("addInfo('WireGuard:host',1,'Server Hostname');"));           // 0 is field type, 1 is actual field
 
   }
 
@@ -130,10 +129,13 @@ public:
     return USERMOD_ID_ULTRASONIC;
   }
 
+
+
 };
 
 // add more strings here to reduce flash memory usage
 const char UltraSonicUsermod::_name[] PROGMEM = "UltrasonicUsermod";
 const char UltraSonicUsermod::_enabled[] PROGMEM = "enabled";
+
 
 
