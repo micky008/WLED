@@ -10,8 +10,8 @@
 /**
  * SPEC
  * I think the sensors will be installed at height of 275cm.
- * 
- * 
+ *
+ *
  * My thoughts are:
 Greater than 255 = off
 255-195 = RGB LEDs 0-59
@@ -54,7 +54,7 @@ public:
 
 
   void setup() {
-    uint8_t maxSeg = strip.getMaxSegments();
+    //uint8_t maxSeg = strip.getMaxSegments();
     for (int i = 0; i < NB_SENSOR; i++) {
       sensors[i] = new NewPing(sonars[i]->triger, sonars[i]->echo, MAX_DISTANCE);
     }
@@ -66,25 +66,25 @@ public:
     }
 
     // do your magic here
-    if (millis() - lastTime > 250) {
-      for (uint8_t i = 0 ; i < NB_SENSOR; i++){
-        long dist = sensors[i]->ping_cm();
-        if (dist <= sonars[i]->threshold) {
-          Segment& seg = strip.getSegment(id);
-          seg.
-          strip.
-        }
-      }
+    if (millis() - lastTime > 1000) {
+      // for (uint8_t i = 0; i < NB_SENSOR; i++) {
+      //   long dist = sensors[i]->ping_cm();
+      //   if (dist <= sonars[i]->threshold) {
+      //     Segment& seg = strip.getSegment(0);
+      //     //seg.
+      //     // strip.
+      //   }
+      // }
       lastTime = millis();
     }
   }
 
   void addToConfig(JsonObject& root) {
     JsonObject top = root.createNestedObject(FPSTR(_name));
-    JsonObject sensor1 = root.createNestedObject("sensor1");
-    JsonObject sensor2 = root.createNestedObject("sensor2");
-    JsonObject sensor3 = root.createNestedObject("sensor3");
-    JsonObject sensor4 = root.createNestedObject("sensor4");
+    JsonObject sensor1 = top.createNestedObject("sensor1");
+    JsonObject sensor2 = top.createNestedObject("sensor2");
+    JsonObject sensor3 = top.createNestedObject("sensor3");
+    JsonObject sensor4 = top.createNestedObject("sensor4");
 
     sensor1["echo"] = 32;
     sensor1["trigger"] = 33;
@@ -94,18 +94,17 @@ public:
     sensor2["echo"] = 25;
     sensor2["trigger"] = 26;
     sensor2["segId1"] = 3;
-    sensor1["th"] = THRESHOLD;
+    sensor2["th"] = THRESHOLD;
 
     sensor3["echo"] = 27;
     sensor3["trigger"] = 14;
     sensor3["segId1"] = 5;
-    sensor1["th"] = THRESHOLD;
+    sensor3["th"] = THRESHOLD;
 
     sensor4["echo"] = 12;
     sensor4["trigger"] = 13;
     sensor4["segId1"] = 7;
-    sensor1["th"] = THRESHOLD;
-
+    sensor4["th"] = THRESHOLD;
 
     top[FPSTR(_enabled)] = enabled;
 
