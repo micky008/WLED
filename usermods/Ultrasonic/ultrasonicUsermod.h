@@ -4,6 +4,21 @@
 #include "wled.h"
 
 #define MAX_DISTANCE 200
+#define THRESHOLD 200
+#define NB_SENSOR 4
+
+/**
+ * SPEC
+ * I think the sensors will be installed at height of 275cm.
+ * 
+ * 
+ * My thoughts are:
+Greater than 255 = off
+255-195 = RGB LEDs 0-59
+195-135 = UV LEDs 60-120
+121-75 = spot LED
+*/
+
 
 
 class UltraSonicUsermod : public Usermod {
@@ -15,15 +30,16 @@ private:
     uint8_t echo;
     uint8_t triger;
     uint8_t idSegment1;
-    uint8_t idSegment2;
+    int threshold;
   };
   // string that are used multiple time (this will save some flash memory)
   static const char _name[];
   static const char _enabled[];
   bool enabled = false;
   long lastTime = 0;
-  NewPing* sensors[4];
-  Sonar* sonars[4];
+  NewPing* sensors[NB_SENSOR];
+  Sonar* sonars[NB_SENSOR];
+  int captorFirst = 0;
 
 public:
   // non WLED related methods, may be used for data exchange between usermods (non-inline methods should be defined out of class)
@@ -38,10 +54,10 @@ public:
 
 
   void setup() {
-    sensors[0] = new NewPing(sonars[0]->triger, sonars[0]->echo, MAX_DISTANCE);
-    sensors[1] = new NewPing(sonars[1]->triger, sonars[1]->echo, MAX_DISTANCE);
-    sensors[2] = new NewPing(sonars[2]->triger, sonars[2]->echo, MAX_DISTANCE);
-    sensors[3] = new NewPing(sonars[3]->triger, sonars[3]->echo, MAX_DISTANCE);
+    uint8_t maxSeg = strip.getMaxSegments();
+    for (int i = 0; i < NB_SENSOR; i++) {
+      sensors[i] = new NewPing(sonars[i]->triger, sonars[i]->echo, MAX_DISTANCE);
+    }
   }
 
   void loop() {
@@ -50,8 +66,15 @@ public:
     }
 
     // do your magic here
-    if (millis() - lastTime > 1000) {
-      // Serial.println("I'm alive!");
+    if (millis() - lastTime > 250) {
+      for (uint8_t i = 0 ; i < NB_SENSOR; i++){
+        long dist = sensors[i]->ping_cm();
+        if (dist <= sonars[i]->threshold) {
+          Segment& seg = strip.getSegment(id);
+          seg.
+          strip.
+        }
+      }
       lastTime = millis();
     }
   }
@@ -66,22 +89,22 @@ public:
     sensor1["echo"] = 32;
     sensor1["trigger"] = 33;
     sensor1["segId1"] = 1;
-    sensor1["segId2"] = 2;
+    sensor1["th"] = THRESHOLD;
 
     sensor2["echo"] = 25;
     sensor2["trigger"] = 26;
     sensor2["segId1"] = 3;
-    sensor2["segId2"] = 4;
+    sensor1["th"] = THRESHOLD;
 
     sensor3["echo"] = 27;
     sensor3["trigger"] = 14;
     sensor3["segId1"] = 5;
-    sensor3["segId2"] = 6;
+    sensor1["th"] = THRESHOLD;
 
     sensor4["echo"] = 12;
     sensor4["trigger"] = 13;
     sensor4["segId1"] = 7;
-    sensor4["segId2"] = 8;
+    sensor1["th"] = THRESHOLD;
 
 
     top[FPSTR(_enabled)] = enabled;
@@ -117,7 +140,7 @@ public:
     sonars[i]->echo = sonar["echo"];
     sonars[i]->triger = sonar["trigger"];
     sonars[i]->idSegment1 = sonar["segId1"];
-    sonars[i]->idSegment2 = sonar["segId2"];
+    sonars[i]->threshold = sonar["th"];
   }
 
   void appendConfigData() {
@@ -128,8 +151,6 @@ public:
   uint16_t getId() {
     return USERMOD_ID_ULTRASONIC;
   }
-
-
 
 };
 
