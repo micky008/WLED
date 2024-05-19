@@ -38,38 +38,32 @@ private:
     }
   };
 
-  class Range {
-  public:
-    Tuple* t1 = nullptr;
-    Tuple* t2 = nullptr;
-    Tuple* t3 = nullptr;
-    Range() {
-    }
-    Range(Tuple* t1, Tuple* t2, Tuple* t3) {
-      this->t1 = t1;
-      this->t2 = t2;
-      this->t3 = t3;
-    }
-    ~Range() {
-      delete t1;
-      delete t2;
-      delete t3;
-    }
-  };
-
   class Sonar {
   public:
     uint8_t echo;
     uint8_t triger;
-    Range* range;
+    int min1;
+    int max1;
+    uint8_t idSegment1;
+    int min2;
+    int max2;
+    uint8_t idSegment2;
+    int min3;
+    int max3;
+    uint8_t idSegment3;
     Sonar() {}
-    Sonar(int e, int t, Range* r) {
+    Sonar(int e, int t, Tuple t1, Tuple t2, Tuple t3) {
       this->echo = (uint8_t)e;
-      this->range = r;
+      this->idSegment1 = t1.idSegment;
+      this->max1 = t1.max;
+      this->min1 = t1.min;
+      this->idSegment2 = t2.idSegment;
+      this->max2 = t2.max;
+      this->min2 = t2.min;
+      this->idSegment3 = t3.idSegment;
+      this->max3 = t3.max;
+      this->min3 = t3.min;
       this->triger = (uint8_t)t;
-    }
-    ~Sonar() {
-      delete range;
     }
   };
 
@@ -79,11 +73,15 @@ private:
   bool enabled = false;
   long lastTime = 0;
   NewPing* sensors[NB_SENSOR];
-  Sonar* sonars[NB_SENSOR];
+  Sonar sonars[NB_SENSOR] = {
+    Sonar(32, 33, Tuple(195, THRESHOLD_MAX, 1), Tuple(135, 194, 2), Tuple(0, 134, 3)),
+    Sonar(25, 26, Tuple(195, THRESHOLD_MAX, 4), Tuple(135, 194, 5), Tuple(0, 134, 6)),
+    Sonar(27, 14, Tuple(195, THRESHOLD_MAX, 7), Tuple(135, 194, 8), Tuple(0, 134, 9)),
+    Sonar(12, 13, Tuple(195, THRESHOLD_MAX, 10), Tuple(135, 194, 11), Tuple(0, 134, 12)),
+  };
   int captorFirst = 0;
 
 public:
-  // non WLED related methods, may be used for data exchange between usermods (non-inline methods should be defined out of class)
 
   inline void enable(bool enable) {
     enabled = enable;
@@ -95,9 +93,8 @@ public:
 
 
   void setup() {
-    //uint8_t maxSeg = strip.getMaxSegments();
     for (int i = 0; i < NB_SENSOR; i++) {
-      sensors[i] = new NewPing(sonars[i]->triger, sonars[i]->echo, MAX_DISTANCE);
+      sensors[i] = new NewPing(sonars[i].triger, sonars[i].echo, MAX_DISTANCE);
     }
   }
 
@@ -121,47 +118,34 @@ public:
   }
 
   void addToConfig(JsonObject& root) {
+    if (root.containsKey(FPSTR(_name))) {
+      return;
+    }
     JsonObject top = root.createNestedObject(FPSTR(_name));
     JsonObject sensor1 = top.createNestedObject("sensor1");
     JsonObject sensor2 = top.createNestedObject("sensor2");
     JsonObject sensor3 = top.createNestedObject("sensor3");
     JsonObject sensor4 = top.createNestedObject("sensor4");
 
-    Sonar s1(32, 33, getRange(1));
-    Sonar s2(25, 26, getRange(4));
-    Sonar s3(27, 14, getRange(7));
-    Sonar s4(12, 13, getRange(10));
-
     top[FPSTR(_enabled)] = enabled;
-    fillSensor(sensor1, s1);
-    fillSensor(sensor2, s2);
-    fillSensor(sensor3, s3);
-    fillSensor(sensor4, s4);
-
-  }
-
-  Range* getRange(int idFirstSeg) {
-    Tuple* t1 = new Tuple(195, THRESHOLD_MAX, idFirstSeg);
-    Tuple* t2 = new Tuple(135, 194, idFirstSeg + 1);
-    Tuple* t3 = new Tuple(0, 134, idFirstSeg + 2);
-    return new Range(t1, t2, t3);
+    fillSensor(sensor1, sonars[0]);
+    fillSensor(sensor2, sonars[1]);
+    fillSensor(sensor3, sonars[2]);
+    fillSensor(sensor4, sonars[3]);
   }
 
   void fillSensor(JsonObject& sensor, Sonar& so) {
     sensor["echo"] = so.echo;
     sensor["trigger"] = so.triger;
-    JsonObject range1 = sensor.createNestedObject("range1");
-    range1["idSeg"] = so.range->t1->idSegment;
-    range1["min"] = so.range->t1->min;
-    range1["max"] = so.range->t1->max;
-    JsonObject range2 = sensor.createNestedObject("range2");
-    range2["idSeg"] = so.range->t2->idSegment;
-    range2["min"] = so.range->t2->min;
-    range2["max"] = so.range->t2->max;
-    JsonObject range3 = sensor.createNestedObject("range3");
-    range3["idSeg"] = so.range->t3->idSegment;
-    range3["min"] = so.range->t3->min;
-    range3["max"] = so.range->t3->max;
+    sensor["idSeg1"] = so.idSegment1;
+    sensor["min1"] = so.min1;
+    sensor["max1"] = so.max1;
+    sensor["idSeg2"] = so.idSegment2;
+    sensor["min2"] = so.min2;
+    sensor["max2"] = so.max2;
+    sensor["idSeg3"] = so.idSegment3;
+    sensor["min3"] = so.min3;
+    sensor["max3"] = so.max3;
   }
 
   bool readFromConfig(JsonObject& root) {
@@ -177,12 +161,6 @@ public:
     JsonObject s2 = top["sensor2"];
     JsonObject s3 = top["sensor3"];
     JsonObject s4 = top["sensor4"];
-    if (sonars[0] == nullptr) {
-      sonars[0] = new Sonar();
-      sonars[1] = new Sonar();
-      sonars[2] = new Sonar();
-      sonars[3] = new Sonar();
-    }
     peupleSonar(s1, 0);
     peupleSonar(s2, 1);
     peupleSonar(s3, 2);
@@ -191,31 +169,22 @@ public:
   }
 
   void peupleSonar(JsonObject& sonar, uint8_t i) {
-    sonars[i]->echo = sonar["echo"];
-    sonars[i]->triger = sonar["trigger"];
-    JsonObject range1 = sonar["range1"];
-    JsonObject range2 = sonar["range2"];
-    JsonObject range3 = sonar["range3"];
-    sonars[i]->range = new Range();
-    sonars[i]->range->t1 = new Tuple();
-    sonars[i]->range->t1->idSegment = range1["idSeg"];
-    sonars[i]->range->t1->min = range1["min"];
-    sonars[i]->range->t1->max = range1["max"];
-    sonars[i]->range->t2 = new Tuple();
-    sonars[i]->range->t2->idSegment = range2["idSeg"];
-    sonars[i]->range->t2->min = range2["min"];
-    sonars[i]->range->t2->max = range2["max"];
-    sonars[i]->range->t3 = new Tuple();
-    sonars[i]->range->t3->idSegment = range3["idSeg"];
-    sonars[i]->range->t3->min = range3["min"];
-    sonars[i]->range->t3->max = range3["max"];
-
+    sonars[i].echo = sonar["echo"];
+    sonars[i].triger = sonar["trigger"];
+    sonars[i].idSegment1 = sonar["idSeg1"];
+    sonars[i].min1 = sonar["min1"];
+    sonars[i].max1 = sonar["max1"];
+    sonars[i].idSegment2 = sonar["idSeg2"];
+    sonars[i].min2 = sonar["min2"];
+    sonars[i].max2 = sonar["max2"];
+    sonars[i].idSegment3 = sonar["idSeg3"];
+    sonars[i].min3 = sonar["min3"];
+    sonars[i].max3 = sonar["max3"];
   }
 
   void appendConfigData() {
-    oappend(SET_F("addInfo('UltrasonicUsermod:min',1,'in cm');"));           // 0 is field type, 1 is actual field
-    oappend(SET_F("addInfo('UltrasonicUsermod:max',1,'in cm');"));           // 0 is field type, 1 is actual field
-
+    oappend(SET_F("addInfo('UltrasonicUsermod:min1',1,'in cm');"));           // 0 is field type, 1 is actual field
+    oappend(SET_F("addInfo('UltrasonicUsermod:max1',1,'in cm');"));           // 0 is field type, 1 is actual field
   }
 
   uint16_t getId() {
