@@ -30,11 +30,13 @@ private:
     int min;
     int max;
     uint8_t idSegment;
+    int maxLed;
     Tuple() {}
-    Tuple(int min, int max, int idSeg) {
+    Tuple(int min, int max, int idSeg, int maxLed) {
       this->min = min;
       this->max = max;
       this->idSegment = (uint8_t)idSeg;
+      this->maxLed = maxLed;
     }
   };
 
@@ -45,12 +47,15 @@ private:
     int min1;
     int max1;
     uint8_t idSegment1;
+    int maxLed1;
     int min2;
     int max2;
     uint8_t idSegment2;
+    int maxLed2;
     int min3;
     int max3;
     uint8_t idSegment3;
+    int maxLed3;
     Sonar() {}
     Sonar(int e, int t, Tuple t1, Tuple t2, Tuple t3) {
       this->echo = (uint8_t)e;
@@ -64,6 +69,9 @@ private:
       this->max3 = t3.max;
       this->min3 = t3.min;
       this->triger = (uint8_t)t;
+      this->maxLed1 = t1.maxLed;
+      this->maxLed2 = t2.maxLed;
+      this->maxLed3 = t3.maxLed;
     }
   };
 
@@ -74,10 +82,10 @@ private:
   long lastTime = 0;
   NewPing* sensors[NB_SENSOR];
   Sonar sonars[NB_SENSOR] = {
-    Sonar(32, 33, Tuple(195, THRESHOLD_MAX, 1), Tuple(135, 194, 2), Tuple(0, 134, 3)),
-    Sonar(25, 26, Tuple(195, THRESHOLD_MAX, 4), Tuple(135, 194, 5), Tuple(0, 134, 6)),
-    Sonar(27, 14, Tuple(195, THRESHOLD_MAX, 7), Tuple(135, 194, 8), Tuple(0, 134, 9)),
-    Sonar(12, 13, Tuple(195, THRESHOLD_MAX, 10), Tuple(135, 194, 11), Tuple(0, 134, 12)),
+    Sonar(32, 33, Tuple(195, THRESHOLD_MAX, 1, 59), Tuple(135, 194, 2, 119), Tuple(0, 134, 3, 120)),
+    Sonar(25, 26, Tuple(195, THRESHOLD_MAX, 4, 59), Tuple(135, 194, 5, 119), Tuple(0, 134, 6,120)),
+    Sonar(27, 14, Tuple(195, THRESHOLD_MAX, 7, 59), Tuple(135, 194, 8, 119), Tuple(0, 134, 9,120)),
+    Sonar(12, 13, Tuple(195, THRESHOLD_MAX, 10, 59), Tuple(135, 194, 11, 119), Tuple(0, 134, 12,120)),
   };
   int captorFirst = 0;
 
@@ -106,13 +114,16 @@ public:
     // do your magic here
     if (millis() - lastTime > 1000) {
       // for (uint8_t i = 0; i < NB_SENSOR; i++) {
-      //   long dist = sensors[i]->ping_cm();
-      //   if (dist <= sonars[i]->threshold) {
-      //     Segment& seg = strip.getSegment(0);
-      //     //seg.
-      //     // strip.
-      //   }
-      // }
+      for (uint8_t i = 0; i < 1; i++) {
+        long dist = sensors[i]->ping_cm();
+        if (sonars[i].min1 >= dist && dist <= sonars[i].max1) {
+          //maxLed = sonars[i].max1 - sonars[i].min1
+          // X led = dist => (dist * sonars[i].maxLed1) / (sonars[i].max1 - sonars[i].min1)
+          uint16_t stop = (dist * sonars[i].maxLed1) / (sonars[i].max1 - sonars[i].min1);
+          strip.setSegment(sonars[i].idSegment1, 0, stop); //id start stop
+        }
+      }
+      colorUpdated(CALL_MODE_DIRECT_CHANGE);
       lastTime = millis();
     }
   }
@@ -137,15 +148,21 @@ public:
   void fillSensor(JsonObject& sensor, Sonar& so) {
     sensor["echo"] = so.echo;
     sensor["trigger"] = so.triger;
+
     sensor["idSeg1"] = so.idSegment1;
     sensor["min1"] = so.min1;
     sensor["max1"] = so.max1;
+    sensor["nbLeds1"] = so.maxLed1;
+
     sensor["idSeg2"] = so.idSegment2;
     sensor["min2"] = so.min2;
     sensor["max2"] = so.max2;
+    sensor["nbLeds2"] = so.maxLed2;
+
     sensor["idSeg3"] = so.idSegment3;
     sensor["min3"] = so.min3;
     sensor["max3"] = so.max3;
+    sensor["nbLeds3"] = so.maxLed3;
   }
 
   bool readFromConfig(JsonObject& root) {
