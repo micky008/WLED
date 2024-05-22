@@ -20,58 +20,49 @@ Greater than 255 = off
 */
 
 
-
 class UltraSonicUsermod : public Usermod {
 
 private:
 
-  class Tuple {
+  class MySegment {
   public:
-    int min;
-    int max;
+    int minCm;
+    int maxCm;
     uint8_t idSegment;
     int maxLed;
-    Tuple() {}
-    Tuple(int min, int max, int idSeg, int maxLed) {
-      this->min = min;
-      this->max = max;
-      this->idSegment = (uint8_t)idSeg;
-      this->maxLed = maxLed;
+    int minLed;
+    MySegment(int _minCm, int _maxCm, int _minLed, int _maxLed, int _idSeg) {
+      this->minCm = _minCm;
+      this->maxCm = _maxCm;
+      this->idSegment = (uint8_t)_idSeg;
+      this->maxLed = _maxLed;
+      this->minLed = _minLed;
     }
   };
+
+  class MyStrip {
+  public:
+    MySegment* seg1 = nullptr;
+    MySegment* seg2 = nullptr;
+    MySegment* seg3 = nullptr;
+    MyStrip(MySegment* _seg1, MySegment* _seg2, MySegment* _seg3) {
+      this->seg1 = _seg1;
+      this->seg2 = _seg2;
+      this->seg3 = _seg3;
+    }
+  };
+
 
   class Sonar {
   public:
     uint8_t echo;
     uint8_t triger;
-    int min1;
-    int max1;
-    uint8_t idSegment1;
-    int maxLed1;
-    int min2;
-    int max2;
-    uint8_t idSegment2;
-    int maxLed2;
-    int min3;
-    int max3;
-    uint8_t idSegment3;
-    int maxLed3;
-    Sonar() {}
-    Sonar(int e, int t, Tuple t1, Tuple t2, Tuple t3) {
+    MyStrip* strip = nullptr;
+
+    Sonar(int e, int t, MyStrip* _strip) {
       this->echo = (uint8_t)e;
-      this->idSegment1 = t1.idSegment;
-      this->max1 = t1.max;
-      this->min1 = t1.min;
-      this->idSegment2 = t2.idSegment;
-      this->max2 = t2.max;
-      this->min2 = t2.min;
-      this->idSegment3 = t3.idSegment;
-      this->max3 = t3.max;
-      this->min3 = t3.min;
       this->triger = (uint8_t)t;
-      this->maxLed1 = t1.maxLed;
-      this->maxLed2 = t2.maxLed;
-      this->maxLed3 = t3.maxLed;
+      this->strip = _strip;
     }
   };
 
@@ -82,14 +73,15 @@ private:
   long lastTime = 0;
   NewPing* sensors[NB_SENSOR];
   Sonar sonars[NB_SENSOR] = {
-    Sonar(32, 33, Tuple(195, THRESHOLD_MAX, 1, 59), Tuple(135, 194, 2, 119), Tuple(0, 134, 3, 120)),
-    Sonar(25, 26, Tuple(195, THRESHOLD_MAX, 4, 59), Tuple(135, 194, 5, 119), Tuple(0, 134, 6,120)),
-    Sonar(27, 14, Tuple(195, THRESHOLD_MAX, 7, 59), Tuple(135, 194, 8, 119), Tuple(0, 134, 9,120)),
-    Sonar(12, 13, Tuple(195, THRESHOLD_MAX, 10, 59), Tuple(135, 194, 11, 119), Tuple(0, 134, 12,120)),
+     Sonar(32, 33, new MyStrip(new MySegment(195, 255, 0, 59, 0), new MySegment(135, 194, 59, 119, 1), new MySegment(0, 134, 119, 120, 2))),
+     Sonar(25, 26, new MyStrip(new MySegment(195, 255, 0, 59, 3), new MySegment(135, 194, 59, 119, 4), new MySegment(0, 134, 119, 120, 5))),
+     Sonar(27, 14, new MyStrip(new MySegment(195, 255, 0, 59, 6), new MySegment(135, 194, 59, 119, 7), new MySegment(0, 134, 119, 120, 8))),
+     Sonar(12, 13, new MyStrip(new MySegment(195, 255, 0, 59, 9), new MySegment(135, 194, 59, 119, 10), new MySegment(0, 134, 119, 120, 11)))
   };
   int captorFirst = 0;
 
 public:
+
 
   inline void enable(bool enable) {
     enabled = enable;
@@ -101,6 +93,7 @@ public:
 
 
   void setup() {
+    Serial.begin(115200);
     for (int i = 0; i < NB_SENSOR; i++) {
       sensors[i] = new NewPing(sonars[i].triger, sonars[i].echo, MAX_DISTANCE);
     }
@@ -112,18 +105,31 @@ public:
     }
 
     // do your magic here
-    if (millis() - lastTime > 1000) {
+    if (millis() - lastTime > 500) {
       // for (uint8_t i = 0; i < NB_SENSOR; i++) {
       for (uint8_t i = 0; i < 1; i++) {
         long dist = sensors[i]->ping_cm();
-        if (sonars[i].min1 >= dist && dist <= sonars[i].max1) {
-          //maxLed = sonars[i].max1 - sonars[i].min1
-          // X led = dist => (dist * sonars[i].maxLed1) / (sonars[i].max1 - sonars[i].min1)
-          uint16_t stop = (dist * sonars[i].maxLed1) / (sonars[i].max1 - sonars[i].min1);
-          strip.setSegment(sonars[i].idSegment1, 0, stop); //id start stop
-        }
+        Serial.printf("dist=%d\n", dist);
+        // if (sonars[i].min1 >= dist && dist <= sonars[i].max1) {
+        //   //maxLed = sonars[i].max1 - sonars[i].min1
+        //   // X led = dist => (dist * sonars[i].maxLed1) / (sonars[i].max1 - sonars[i].min1)
+        //   uint16_t stop = (dist * sonars[i].maxLed1) / (sonars[i].max1 - sonars[i].min1);
+        //   Serial.printf("stop1=%d\n", stop);
+        //   strip.setSegment(sonars[i].idSegment1, 0, stop); //id start stop
+        //   colorUpdated(CALL_MODE_DIRECT_CHANGE);
+        // }
+        // else if (sonars[i].min2 >= dist && dist <= sonars[i].max2) {
+        //   uint16_t stop = (dist * sonars[i].maxLed2) / (sonars[i].max2 - sonars[i].min2);
+        //   strip.setSegment(sonars[i].idSegment2, 0, stop);
+        //   colorUpdated(CALL_MODE_DIRECT_CHANGE);
+        // }
+        // else if (sonars[i].min3 >= dist && dist <= sonars[i].max3) {
+        //   uint16_t stop = (dist * sonars[i].maxLed3) / (sonars[i].max3 - sonars[i].min3);
+        //   strip.setSegment(sonars[i].idSegment3, 0, stop);
+        //   colorUpdated(CALL_MODE_DIRECT_CHANGE);
+        // }
       }
-      colorUpdated(CALL_MODE_DIRECT_CHANGE);
+
       lastTime = millis();
     }
   }
@@ -149,20 +155,29 @@ public:
     sensor["echo"] = so.echo;
     sensor["trigger"] = so.triger;
 
-    sensor["idSeg1"] = so.idSegment1;
-    sensor["min1"] = so.min1;
-    sensor["max1"] = so.max1;
-    sensor["nbLeds1"] = so.maxLed1;
+    JsonObject mystrip = sensor.createNestedObject("myStrip");
+    JsonObject mySegment1 = mystrip.createNestedObject("mySegment1");
+    JsonObject mySegment2 = mystrip.createNestedObject("mySegment2");
+    JsonObject mySegment3 = mystrip.createNestedObject("mySegment3");
 
-    sensor["idSeg2"] = so.idSegment2;
-    sensor["min2"] = so.min2;
-    sensor["max2"] = so.max2;
-    sensor["nbLeds2"] = so.maxLed2;
+    mySegment1["maxCm"] = so.strip->seg1->maxCm;
+    mySegment1["minCm"] = so.strip->seg1->minCm;
+    mySegment1["idSeg"] = so.strip->seg1->idSegment;
+    mySegment1["maxLed"] = so.strip->seg1->maxLed;
+    mySegment1["minLed"] = so.strip->seg1->minLed;
 
-    sensor["idSeg3"] = so.idSegment3;
-    sensor["min3"] = so.min3;
-    sensor["max3"] = so.max3;
-    sensor["nbLeds3"] = so.maxLed3;
+    mySegment2["maxCm"] = so.strip->seg2->maxCm;
+    mySegment2["minCm"] = so.strip->seg2->minCm;
+    mySegment2["idSeg"] = so.strip->seg2->idSegment;
+    mySegment2["maxLed"] = so.strip->seg2->maxLed;
+    mySegment2["minLed"] = so.strip->seg2->minLed;
+
+    mySegment3["maxCm"] = so.strip->seg3->maxCm;
+    mySegment3["minCm"] = so.strip->seg3->minCm;
+    mySegment3["idSeg"] = so.strip->seg3->idSegment;
+    mySegment3["maxLed"] = so.strip->seg3->maxLed;
+    mySegment3["minLed"] = so.strip->seg3->minLed;
+
   }
 
   bool readFromConfig(JsonObject& root) {
@@ -188,15 +203,37 @@ public:
   void peupleSonar(JsonObject& sonar, uint8_t i) {
     sonars[i].echo = sonar["echo"];
     sonars[i].triger = sonar["trigger"];
-    sonars[i].idSegment1 = sonar["idSeg1"];
-    sonars[i].min1 = sonar["min1"];
-    sonars[i].max1 = sonar["max1"];
-    sonars[i].idSegment2 = sonar["idSeg2"];
-    sonars[i].min2 = sonar["min2"];
-    sonars[i].max2 = sonar["max2"];
-    sonars[i].idSegment3 = sonar["idSeg3"];
-    sonars[i].min3 = sonar["min3"];
-    sonars[i].max3 = sonar["max3"];
+    JsonObject mystrip = sonar["myStrip"];
+    JsonObject mySegment1 = mystrip["mySegment1"];
+    JsonObject mySegment2 = mystrip["mySegment2"];
+    JsonObject mySegment3 = mystrip["mySegment3"];
+
+    Serial.printf("sonars[i].strip->seg1->idSegment %s\n", mySegment1["idSeg"]);
+
+    // if (sonars[i].strip == nullptr) {
+    //   sonars[i].strip = new MyStrip(nullptr, nullptr, nullptr);
+    //   sonars[i].strip->seg1 = new MySegment(0,0,0,0,0);
+    //   sonars[i].strip->seg2 = new MySegment(0,0,0,0,0);
+    //   sonars[i].strip->seg3 = new MySegment(0,0,0,0,0);
+    // }
+
+    // sonars[i].strip->seg1->idSegment = mySegment1["idSeg"];
+    // sonars[i].strip->seg1->maxCm = mySegment1["maxCm"];
+    // sonars[i].strip->seg1->maxLed = mySegment1["maxLed"];
+    // sonars[i].strip->seg1->minCm = mySegment1["minCm"];
+    // sonars[i].strip->seg1->minLed = mySegment1["minLed"];
+
+    // sonars[i].strip->seg2->idSegment = mySegment2["idSeg"];
+    // sonars[i].strip->seg2->maxCm = mySegment2["maxCm"];
+    // sonars[i].strip->seg2->maxLed = mySegment2["maxLed"];
+    // sonars[i].strip->seg2->minCm = mySegment2["minCm"];
+    // sonars[i].strip->seg2->minLed = mySegment2["minLed"];
+
+    // sonars[i].strip->seg3->idSegment = mySegment3["idSeg"];
+    // sonars[i].strip->seg3->maxCm = mySegment3["maxCm"];
+    // sonars[i].strip->seg3->maxLed = mySegment3["maxLed"];
+    // sonars[i].strip->seg3->minCm = mySegment3["minCm"];
+    // sonars[i].strip->seg3->minLed = mySegment3["minLed"];
   }
 
   void appendConfigData() {
@@ -213,6 +250,5 @@ public:
 // add more strings here to reduce flash memory usage
 const char UltraSonicUsermod::_name[] PROGMEM = "UltrasonicUsermod";
 const char UltraSonicUsermod::_enabled[] PROGMEM = "enabled";
-
 
 
