@@ -52,7 +52,6 @@ private:
     }
   };
 
-
   class Sonar {
   public:
     uint8_t echo;
@@ -94,6 +93,8 @@ public:
 
   void setup() {
     Serial.begin(115200);
+    delay(1000);
+    Serial.printf("nb moin cm = %d", this->sonars[0].strip->seg3->minCm);
     for (int i = 0; i < NB_SENSOR; i++) {
       sensors[i] = new NewPing(sonars[i].triger, sonars[i].echo, MAX_DISTANCE);
     }
@@ -109,7 +110,7 @@ public:
       // for (uint8_t i = 0; i < NB_SENSOR; i++) {
       for (uint8_t i = 0; i < 1; i++) {
         long dist = sensors[i]->ping_cm();
-        Serial.printf("dist=%d\n", dist);
+        Serial.printf("dist=%ld\n", dist);
         // if (sonars[i].min1 >= dist && dist <= sonars[i].max1) {
         //   //maxLed = sonars[i].max1 - sonars[i].min1
         //   // X led = dist => (dist * sonars[i].maxLed1) / (sonars[i].max1 - sonars[i].min1)
@@ -184,10 +185,11 @@ public:
 
     JsonObject top = root[FPSTR(_name)];
 
-    if (top["sensor1"].isNull() || top["sensor2"].isNull() || top["sensor3"].isNull() || top["sensor4"].isNull()) {
+    if (top["enabled"].isNull()) {
       this->enabled = false;
       return false;
     }
+
     this->enabled = top["enabled"];
     JsonObject s1 = top["sensor1"];
     JsonObject s2 = top["sensor2"];
@@ -208,8 +210,6 @@ public:
     JsonObject mySegment2 = mystrip["mySegment2"];
     JsonObject mySegment3 = mystrip["mySegment3"];
 
-    Serial.printf("sonars[i].strip->seg1->idSegment %s\n", mySegment1["idSeg"]);
-
     // if (sonars[i].strip == nullptr) {
     //   sonars[i].strip = new MyStrip(nullptr, nullptr, nullptr);
     //   sonars[i].strip->seg1 = new MySegment(0,0,0,0,0);
@@ -217,23 +217,23 @@ public:
     //   sonars[i].strip->seg3 = new MySegment(0,0,0,0,0);
     // }
 
-    // sonars[i].strip->seg1->idSegment = mySegment1["idSeg"];
-    // sonars[i].strip->seg1->maxCm = mySegment1["maxCm"];
-    // sonars[i].strip->seg1->maxLed = mySegment1["maxLed"];
-    // sonars[i].strip->seg1->minCm = mySegment1["minCm"];
-    // sonars[i].strip->seg1->minLed = mySegment1["minLed"];
+    getJsonValue(mySegment1["idSeg"], sonars[i].strip->seg1->idSegment);
+    sonars[i].strip->seg1->maxCm = mySegment1["maxCm"];
+    sonars[i].strip->seg1->maxLed = mySegment1["maxLed"];
+    sonars[i].strip->seg1->minCm = mySegment1["minCm"];
+    sonars[i].strip->seg1->minLed = mySegment1["minLed"];
 
-    // sonars[i].strip->seg2->idSegment = mySegment2["idSeg"];
-    // sonars[i].strip->seg2->maxCm = mySegment2["maxCm"];
-    // sonars[i].strip->seg2->maxLed = mySegment2["maxLed"];
-    // sonars[i].strip->seg2->minCm = mySegment2["minCm"];
-    // sonars[i].strip->seg2->minLed = mySegment2["minLed"];
+    sonars[i].strip->seg2->idSegment = mySegment2["idSeg"];
+    sonars[i].strip->seg2->maxCm = mySegment2["maxCm"];
+    sonars[i].strip->seg2->maxLed = mySegment2["maxLed"];
+    sonars[i].strip->seg2->minCm = mySegment2["minCm"];
+    sonars[i].strip->seg2->minLed = mySegment2["minLed"];
 
-    // sonars[i].strip->seg3->idSegment = mySegment3["idSeg"];
-    // sonars[i].strip->seg3->maxCm = mySegment3["maxCm"];
-    // sonars[i].strip->seg3->maxLed = mySegment3["maxLed"];
-    // sonars[i].strip->seg3->minCm = mySegment3["minCm"];
-    // sonars[i].strip->seg3->minLed = mySegment3["minLed"];
+    sonars[i].strip->seg3->idSegment = mySegment3["idSeg"];
+    sonars[i].strip->seg3->maxCm = mySegment3["maxCm"];
+    sonars[i].strip->seg3->maxLed = mySegment3["maxLed"];
+    sonars[i].strip->seg3->minCm = mySegment3["minCm"];
+    sonars[i].strip->seg3->minLed = mySegment3["minLed"];
   }
 
   void appendConfigData() {
