@@ -122,6 +122,12 @@ public:
           uint16_t stop = (dist * sonars[i].maxLed1) / (sonars[i].max1 - sonars[i].min1);
           strip.setSegment(sonars[i].idSegment1, 0, stop); //id start stop
         }
+        if (sonars[i].min2 >= dist && dist <= sonars[i].max2) {
+          //maxLed = sonars[i].max1 - sonars[i].min1
+          // X led = dist => (dist * sonars[i].maxLed1) / (sonars[i].max1 - sonars[i].min1)
+          uint16_t stop = (dist * sonars[i].maxLed2) / (sonars[i].max2 - sonars[i].min2);
+          strip.setSegment(sonars[i].idSegment2, 0, stop); //id start stop
+        }
       }
       colorUpdated(CALL_MODE_DIRECT_CHANGE);
       lastTime = millis();
