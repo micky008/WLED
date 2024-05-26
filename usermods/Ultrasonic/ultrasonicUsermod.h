@@ -25,18 +25,14 @@ class UltraSonicUsermod : public Usermod {
 
 private:
 
-  class Tuple {
+  class Pair {
   public:
     int min;
     int max;
-    uint8_t idSegment;
-    int maxLed;
-    Tuple() {}
-    Tuple(int min, int max, int idSeg, int maxLed) {
+    Pair() {}
+    Pair(int max, int min) {
       this->min = min;
       this->max = max;
-      this->idSegment = (uint8_t)idSeg;
-      this->maxLed = maxLed;
     }
   };
 
@@ -44,36 +40,28 @@ private:
   public:
     uint8_t echo;
     uint8_t triger;
-    int min1;
     int max1;
-    uint8_t idSegment1;
-    int maxLed1;
-    int min2;
+    int min1;
     int max2;
-    uint8_t idSegment2;
-    int maxLed2;
-    int min3;
+    int min2;
     int max3;
-    uint8_t idSegment3;
-    int maxLed3;
+    int min3;
     Sonar() {}
-    Sonar(int e, int t, Tuple t1, Tuple t2, Tuple t3) {
+    Sonar(int e, int t, Pair t1, Pair t2, Pair t3) {
       this->echo = (uint8_t)e;
-      this->idSegment1 = t1.idSegment;
+      this->triger = (uint8_t)t;
       this->max1 = t1.max;
       this->min1 = t1.min;
-      this->idSegment2 = t2.idSegment;
       this->max2 = t2.max;
       this->min2 = t2.min;
-      this->idSegment3 = t3.idSegment;
       this->max3 = t3.max;
       this->min3 = t3.min;
-      this->triger = (uint8_t)t;
-      this->maxLed1 = t1.maxLed;
-      this->maxLed2 = t2.maxLed;
-      this->maxLed3 = t3.maxLed;
     }
   };
+
+  const int th1[4] = { 0,3,6,9 };
+  const int th2[4] = { 1,4,7,10 };
+  const int th3[4] = { 2,5,8,11 };
 
   // string that are used multiple time (this will save some flash memory)
   static const char _name[];
@@ -81,11 +69,17 @@ private:
   bool enabled = false;
   long lastTime = 0;
   NewPing* sensors[NB_SENSOR];
+  // Sonar sonars[NB_SENSOR] = {
+  //   Sonar(32, 33, Pair(195, THRESHOLD_MAX), Pair(135, 194), Pair(0, 134)),
+  //   Sonar(25, 26, Pair(195, THRESHOLD_MAX), Pair(135, 194), Pair(0, 134)),
+  //   Sonar(27, 14, Pair(195, THRESHOLD_MAX), Pair(135, 194), Pair(0, 134)),
+  //   Sonar(12, 13, Pair(195, THRESHOLD_MAX), Pair(135, 194), Pair(0, 134)),
+  // };
   Sonar sonars[NB_SENSOR] = {
-    Sonar(32, 33, Tuple(195, THRESHOLD_MAX, 1, 59), Tuple(135, 194, 2, 119), Tuple(0, 134, 3, 120)),
-    Sonar(25, 26, Tuple(195, THRESHOLD_MAX, 4, 59), Tuple(135, 194, 5, 119), Tuple(0, 134, 6,120)),
-    Sonar(27, 14, Tuple(195, THRESHOLD_MAX, 7, 59), Tuple(135, 194, 8, 119), Tuple(0, 134, 9,120)),
-    Sonar(12, 13, Tuple(195, THRESHOLD_MAX, 10, 59), Tuple(135, 194, 11, 119), Tuple(0, 134, 12,120)),
+    Sonar(17, 5, Pair(170, 120), Pair(119, 60), Pair(59, 0)),
+    Sonar(25, 26, Pair(195, THRESHOLD_MAX), Pair(135, 194), Pair(0, 134)),
+    Sonar(27, 14, Pair(195, THRESHOLD_MAX), Pair(135, 194), Pair(0, 134)),
+    Sonar(12, 13, Pair(195, THRESHOLD_MAX), Pair(135, 194), Pair(0, 134)),
   };
   int captorFirst = 0;
 
@@ -99,7 +93,6 @@ public:
     return enabled;
   }
 
-
   void setup() {
     for (int i = 0; i < NB_SENSOR; i++) {
       sensors[i] = new NewPing(sonars[i].triger, sonars[i].echo, MAX_DISTANCE);
@@ -111,27 +104,44 @@ public:
       return;
     }
 
+
+//if (angle >= 90 && angle <= 180) {
+//
     // do your magic here
-    if (millis() - lastTime > 1000) {
       // for (uint8_t i = 0; i < NB_SENSOR; i++) {
-      for (uint8_t i = 0; i < 1; i++) {
+    for (uint8_t i = 0; i < 1; i++) {
+      if (millis() - lastTime > 500) {
         long dist = sensors[i]->ping_cm();
-        if (sonars[i].min1 >= dist && dist <= sonars[i].max1) {
-          //maxLed = sonars[i].max1 - sonars[i].min1
-          // X led = dist => (dist * sonars[i].maxLed1) / (sonars[i].max1 - sonars[i].min1)
-          uint16_t stop = (dist * sonars[i].maxLed1) / (sonars[i].max1 - sonars[i].min1);
-          strip.setSegment(sonars[i].idSegment1, 0, stop); //id start stop
+        Serial.printf("dist=%ld\n", dist);
+        if ( dist >= sonars[i].min1  &&  dist <= sonars[i].max1) {
+          Serial.println("in th1");
+          Segment s = strip.getSegment(th1[i]);
+          s.intensity = 255;
+          strip.getSegment(th2[i]).intensity = 0;
+          strip.getSegment(th3[i]).intensity = 0;          
         }
-        if (sonars[i].min2 >= dist && dist <= sonars[i].max2) {
-          //maxLed = sonars[i].max1 - sonars[i].min1
-          // X led = dist => (dist * sonars[i].maxLed1) / (sonars[i].max1 - sonars[i].min1)
-          uint16_t stop = (dist * sonars[i].maxLed2) / (sonars[i].max2 - sonars[i].min2);
-          strip.setSegment(sonars[i].idSegment2, 0, stop); //id start stop
+        else if (dist >= sonars[i].min2  &&  dist <= sonars[i].max2) {
+          Serial.println("in th2");
+          Segment s = strip.getSegment(th2[i]);
+          s.intensity = 255;
+          strip.getSegment(th1[i]).intensity = 0;
+          strip.getSegment(th3[i]).intensity = 0;          
         }
+        else if (dist >= sonars[i].min3  &&  dist <= sonars[i].max3) {
+          Serial.println("in th3");
+          Segment s = strip.getSegment(th3[i]);
+          s.intensity = 255;
+          strip.getSegment(th2[i]).intensity = 0;
+          strip.getSegment(th1[i]).intensity = 0;          
+        }else {
+          strip.setBrightness(0,true);
+        }
+          colorUpdated(CALL_MODE_DIRECT_CHANGE);
+        lastTime = millis();
       }
-      colorUpdated(CALL_MODE_DIRECT_CHANGE);
-      lastTime = millis();
     }
+
+
   }
 
   void addToConfig(JsonObject& root) {
@@ -154,28 +164,19 @@ public:
   void fillSensor(JsonObject& sensor, Sonar& so) {
     sensor["echo"] = so.echo;
     sensor["trigger"] = so.triger;
-
-    sensor["idSeg1"] = so.idSegment1;
-    sensor["min1"] = so.min1;
     sensor["max1"] = so.max1;
-    sensor["nbLeds1"] = so.maxLed1;
-
-    sensor["idSeg2"] = so.idSegment2;
-    sensor["min2"] = so.min2;
+    sensor["min1"] = so.min1;
     sensor["max2"] = so.max2;
-    sensor["nbLeds2"] = so.maxLed2;
-
-    sensor["idSeg3"] = so.idSegment3;
-    sensor["min3"] = so.min3;
+    sensor["min2"] = so.min2;
     sensor["max3"] = so.max3;
-    sensor["nbLeds3"] = so.maxLed3;
+    sensor["min3"] = so.min3;
   }
 
   bool readFromConfig(JsonObject& root) {
 
     JsonObject top = root[FPSTR(_name)];
 
-    if (top["sensor1"].isNull() || top["sensor2"].isNull() || top["sensor3"].isNull() || top["sensor4"].isNull()) {
+    if (top["enabled"].isNull()) {
       this->enabled = false;
       return false;
     }
@@ -194,15 +195,12 @@ public:
   void peupleSonar(JsonObject& sonar, uint8_t i) {
     sonars[i].echo = sonar["echo"];
     sonars[i].triger = sonar["trigger"];
-    sonars[i].idSegment1 = sonar["idSeg1"];
-    sonars[i].min1 = sonar["min1"];
     sonars[i].max1 = sonar["max1"];
-    sonars[i].idSegment2 = sonar["idSeg2"];
-    sonars[i].min2 = sonar["min2"];
+    sonars[i].min1 = sonar["min1"];
     sonars[i].max2 = sonar["max2"];
-    sonars[i].idSegment3 = sonar["idSeg3"];
-    sonars[i].min3 = sonar["min3"];
+    sonars[i].min2 = sonar["min2"];
     sonars[i].max3 = sonar["max3"];
+    sonars[i].min3 = sonar["min3"];
   }
 
   void appendConfigData() {
