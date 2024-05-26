@@ -2,6 +2,7 @@
 
 #include <NewPing.h>
 #include "wled.h"
+#include "Sonar.h"
 
 #define MAX_DISTANCE 300
 #define THRESHOLD_MAX 255
@@ -22,61 +23,20 @@ Greater than 255 = off
 
 class UltraSonicUsermod : public Usermod {
 
-private:
-
-  class MySegment {
-  public:
-    int minCm;
-    int maxCm;
-    uint8_t idSegment;
-    int maxLed;
-    int minLed;
-    MySegment(int _minCm, int _maxCm, int _minLed, int _maxLed, int _idSeg) {
-      this->minCm = _minCm;
-      this->maxCm = _maxCm;
-      this->idSegment = (uint8_t)_idSeg;
-      this->maxLed = _maxLed;
-      this->minLed = _minLed;
-    }
-  };
-
-  class MyStrip {
-  public:
-    MySegment* seg1 = nullptr;
-    MySegment* seg2 = nullptr;
-    MySegment* seg3 = nullptr;
-    MyStrip(MySegment* _seg1, MySegment* _seg2, MySegment* _seg3) {
-      this->seg1 = _seg1;
-      this->seg2 = _seg2;
-      this->seg3 = _seg3;
-    }
-  };
-
-  class Sonar {
-  public:
-    uint8_t echo;
-    uint8_t triger;
-    MyStrip* strip = nullptr;
-
-    Sonar(int e, int t, MyStrip* _strip) {
-      this->echo = (uint8_t)e;
-      this->triger = (uint8_t)t;
-      this->strip = _strip;
-    }
-  };
-
   // string that are used multiple time (this will save some flash memory)
   static const char _name[];
   static const char _enabled[];
   bool enabled = false;
   long lastTime = 0;
+  uint8_t toto = 0;
   NewPing* sensors[NB_SENSOR];
+  static const Sonar originalsonars[];
   Sonar sonars[NB_SENSOR] = {
-     Sonar(32, 33, new MyStrip(new MySegment(195, 255, 0, 59, 0), new MySegment(135, 194, 59, 119, 1), new MySegment(0, 134, 119, 120, 2))),
-     Sonar(25, 26, new MyStrip(new MySegment(195, 255, 0, 59, 3), new MySegment(135, 194, 59, 119, 4), new MySegment(0, 134, 119, 120, 5))),
-     Sonar(27, 14, new MyStrip(new MySegment(195, 255, 0, 59, 6), new MySegment(135, 194, 59, 119, 7), new MySegment(0, 134, 119, 120, 8))),
-     Sonar(12, 13, new MyStrip(new MySegment(195, 255, 0, 59, 9), new MySegment(135, 194, 59, 119, 10), new MySegment(0, 134, 119, 120, 11)))
-  };
+   Sonar(32, 33, new MyStrip(new MySegment(195, 255, 0, 59, 0), new MySegment(135, 194, 59, 119, 1), new MySegment(0, 134, 119, 120, 2))),
+   Sonar(25, 26, new MyStrip(new MySegment(195, 255, 0, 59, 3), new MySegment(135, 194, 59, 119, 4), new MySegment(0, 134, 119, 120, 5))),
+   Sonar(27, 14, new MyStrip(new MySegment(195, 255, 0, 59, 6), new MySegment(135, 194, 59, 119, 7), new MySegment(0, 134, 119, 120, 8))),
+   Sonar(12, 13, new MyStrip(new MySegment(195, 255, 0, 59, 9), new MySegment(135, 194, 59, 119, 10), new MySegment(0, 134, 119, 120, 11)))
+};
   int captorFirst = 0;
 
 public:
@@ -210,12 +170,9 @@ public:
     JsonObject mySegment2 = mystrip["mySegment2"];
     JsonObject mySegment3 = mystrip["mySegment3"];
 
-    // if (sonars[i].strip == nullptr) {
-    //   sonars[i].strip = new MyStrip(nullptr, nullptr, nullptr);
-    //   sonars[i].strip->seg1 = new MySegment(0,0,0,0,0);
-    //   sonars[i].strip->seg2 = new MySegment(0,0,0,0,0);
-    //   sonars[i].strip->seg3 = new MySegment(0,0,0,0,0);
-    // }
+    if (sonars[i].strip == nullptr) {
+      sonars[i] = this->originalsonars[i];
+    }
 
     getJsonValue(mySegment1["idSeg"], sonars[i].strip->seg1->idSegment);
     sonars[i].strip->seg1->maxCm = mySegment1["maxCm"];
@@ -251,4 +208,10 @@ public:
 const char UltraSonicUsermod::_name[] PROGMEM = "UltrasonicUsermod";
 const char UltraSonicUsermod::_enabled[] PROGMEM = "enabled";
 
+const Sonar UltraSonicUsermod::originalsonars[] PROGMEM = {
+   Sonar(32, 33, new MyStrip(new MySegment(195, 255, 0, 59, 0), new MySegment(135, 194, 59, 119, 1), new MySegment(0, 134, 119, 120, 2))),
+   Sonar(25, 26, new MyStrip(new MySegment(195, 255, 0, 59, 3), new MySegment(135, 194, 59, 119, 4), new MySegment(0, 134, 119, 120, 5))),
+   Sonar(27, 14, new MyStrip(new MySegment(195, 255, 0, 59, 6), new MySegment(135, 194, 59, 119, 7), new MySegment(0, 134, 119, 120, 8))),
+   Sonar(12, 13, new MyStrip(new MySegment(195, 255, 0, 59, 9), new MySegment(135, 194, 59, 119, 10), new MySegment(0, 134, 119, 120, 11)))
+};
 
