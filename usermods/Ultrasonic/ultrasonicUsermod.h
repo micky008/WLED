@@ -70,12 +70,11 @@ private:
   long lastTime = 0;
   NewPing* sensors[NB_SENSOR];
   Sonar sonars[NB_SENSOR] = {
-    //Sonar(17, 5, Pair(180, 170), Pair(169, 50), Pair(49, 0)), //int e, int t
-    Sonar(17, 5, Pair(170, 120), Pair(119, 60), Pair(59, 0)),
-    //Sonar(32, 33, Pair(195, THRESHOLD_MAX), Pair(135, 194), Pair(0, 134)),
-    Sonar(25, 26, Pair(195, THRESHOLD_MAX), Pair(135, 194), Pair(0, 134)),
-    Sonar(27, 14, Pair(195, THRESHOLD_MAX), Pair(135, 194), Pair(0, 134)),
-    Sonar(12, 13, Pair(195, THRESHOLD_MAX), Pair(135, 194), Pair(0, 134)),
+    //Sonar(17, 5, Pair(120, 100), Pair(99, 40), Pair(39, 0)), //int e, int t
+    Sonar(32, 33, Pair(THRESHOLD_MAX, 195), Pair(194,135), Pair(134,0)),
+    Sonar(25, 26, Pair(THRESHOLD_MAX, 195), Pair(194,135), Pair(134,0)),
+    Sonar(27, 14, Pair(THRESHOLD_MAX, 195), Pair(194,135), Pair(134,0)),
+    Sonar(12, 13, Pair(THRESHOLD_MAX, 195), Pair(194,135), Pair(134,0)),
   };
   int captorFirst = 0;
 
@@ -103,7 +102,7 @@ public:
     }
 
     if (millis() - lastTime > 500) {
-      for (uint8_t i = 0; i < 1; i++) {
+      for (uint8_t i = 0; i < NB_SENSOR; i++) {
         long dist = sensors[i]->ping_cm();
         Serial.printf("sensor=%d dist=%ld\n", i, dist);
         if (dist >= sonars[i].min1 && dist <= sonars[i].max1) {
@@ -199,8 +198,8 @@ public:
   }
 
   void appendConfigData() {
-    oappend(SET_F("addInfo('UltrasonicUsermod:min1',1,'in cm');"));           // 0 is field type, 1 is actual field
-    oappend(SET_F("addInfo('UltrasonicUsermod:max1',1,'in cm');"));           // 0 is field type, 1 is actual field
+    oappend(SET_F("addInfo('UltrasonicUsermod:sensor1:min1',1,'in cm');"));           // 0 is field type, 1 is actual field
+    oappend(SET_F("addInfo('UltrasonicUsermod:sensor1:max1',1,'in cm');"));           // 0 is field type, 1 is actual field
   }
 
   uint16_t getId() {
