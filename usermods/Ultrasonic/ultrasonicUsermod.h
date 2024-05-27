@@ -69,14 +69,10 @@ private:
   bool enabled = false;
   long lastTime = 0;
   NewPing* sensors[NB_SENSOR];
-  // Sonar sonars[NB_SENSOR] = {
-  //   Sonar(32, 33, Pair(195, THRESHOLD_MAX), Pair(135, 194), Pair(0, 134)),
-  //   Sonar(25, 26, Pair(195, THRESHOLD_MAX), Pair(135, 194), Pair(0, 134)),
-  //   Sonar(27, 14, Pair(195, THRESHOLD_MAX), Pair(135, 194), Pair(0, 134)),
-  //   Sonar(12, 13, Pair(195, THRESHOLD_MAX), Pair(135, 194), Pair(0, 134)),
-  // };
   Sonar sonars[NB_SENSOR] = {
+    //Sonar(17, 5, Pair(180, 170), Pair(169, 50), Pair(49, 0)), //int e, int t
     Sonar(17, 5, Pair(170, 120), Pair(119, 60), Pair(59, 0)),
+    //Sonar(32, 33, Pair(195, THRESHOLD_MAX), Pair(135, 194), Pair(0, 134)),
     Sonar(25, 26, Pair(195, THRESHOLD_MAX), Pair(135, 194), Pair(0, 134)),
     Sonar(27, 14, Pair(195, THRESHOLD_MAX), Pair(135, 194), Pair(0, 134)),
     Sonar(12, 13, Pair(195, THRESHOLD_MAX), Pair(135, 194), Pair(0, 134)),
@@ -96,7 +92,9 @@ public:
   void setup() {
     for (int i = 0; i < NB_SENSOR; i++) {
       sensors[i] = new NewPing(sonars[i].triger, sonars[i].echo, MAX_DISTANCE);
+      ledsoff(i);
     }
+    strip.setBrightness(255, false);
   }
 
   void loop() {
@@ -104,44 +102,41 @@ public:
       return;
     }
 
-
-//if (angle >= 90 && angle <= 180) {
-//
-    // do your magic here
-      // for (uint8_t i = 0; i < NB_SENSOR; i++) {
-    for (uint8_t i = 0; i < 1; i++) {
-      if (millis() - lastTime > 500) {
+    if (millis() - lastTime > 500) {
+      for (uint8_t i = 0; i < 1; i++) {
         long dist = sensors[i]->ping_cm();
-        Serial.printf("dist=%ld\n", dist);
-        if ( dist >= sonars[i].min1  &&  dist <= sonars[i].max1) {
-          Serial.println("in th1");
-          Segment s = strip.getSegment(th1[i]);
-          s.intensity = 255;
-          strip.getSegment(th2[i]).intensity = 0;
-          strip.getSegment(th3[i]).intensity = 0;          
+        Serial.printf("sensor=%d dist=%ld\n", i, dist);
+        if (dist >= sonars[i].min1 && dist <= sonars[i].max1) {
+          Serial.printf("sensor=%d th1\n", i);
+          strip.getSegment(th1[i]).setOpacity(254);
+          strip.getSegment(th2[i]).setOpacity(0);
+          strip.getSegment(th3[i]).setOpacity(0);
+          colorUpdated(CALL_MODE_NOTIFICATION);
         }
-        else if (dist >= sonars[i].min2  &&  dist <= sonars[i].max2) {
-          Serial.println("in th2");
-          Segment s = strip.getSegment(th2[i]);
-          s.intensity = 255;
-          strip.getSegment(th1[i]).intensity = 0;
-          strip.getSegment(th3[i]).intensity = 0;          
+        else if (dist >= sonars[i].min2 && dist <= sonars[i].max2) {
+          Serial.printf("sensor=%d th2\n", i);
+          strip.getSegment(th1[i]).setOpacity(0);
+          strip.getSegment(th2[i]).setOpacity(254);
+          strip.getSegment(th3[i]).setOpacity(0);
+          colorUpdated(CALL_MODE_NOTIFICATION);
         }
-        else if (dist >= sonars[i].min3  &&  dist <= sonars[i].max3) {
-          Serial.println("in th3");
-          Segment s = strip.getSegment(th3[i]);
-          s.intensity = 255;
-          strip.getSegment(th2[i]).intensity = 0;
-          strip.getSegment(th1[i]).intensity = 0;          
-        }else {
-          strip.setBrightness(0,true);
+        else if (dist >= sonars[i].min3 && dist <= sonars[i].max3) {
+          Serial.printf("sensor=%d th3\n", i);
+          strip.getSegment(th1[i]).setOpacity(0);
+          strip.getSegment(th2[i]).setOpacity(0);
+          strip.getSegment(th3[i]).setOpacity(254);
+          colorUpdated(CALL_MODE_NOTIFICATION);
         }
-          colorUpdated(CALL_MODE_DIRECT_CHANGE);
         lastTime = millis();
+
       }
     }
+  }
 
-
+  void ledsoff(int i) {
+    strip.getSegment(th1[i]).setOpacity(0);
+    strip.getSegment(th2[i]).setOpacity(0);
+    strip.getSegment(th3[i]).setOpacity(0);
   }
 
   void addToConfig(JsonObject& root) {
